@@ -1,0 +1,214 @@
+import { Suspense } from 'react';
+import {
+  HeroCarousel,
+  HeroSkeleton,
+  MediaRow,
+  MediaRowSkeleton,
+  StudioRow,
+} from '@/components/ui';
+import {
+  getTrending,
+  getPopularMovies,
+  getTopRatedMovies,
+  getNowPlayingMovies,
+  getUpcomingMovies,
+  MOVIE_STUDIOS,
+} from '@/lib/tmdb';
+
+async function HeroSection() {
+  const trending = await getTrending('movie', 'day');
+  return (
+    <HeroCarousel
+      items={trending.results.slice(0, 8).map((item) => ({
+        ...item,
+        title: 'title' in item ? item.title : undefined,
+        name: 'name' in item ? item.name : undefined,
+        media_type: 'movie',
+      }))}
+    />
+  );
+}
+
+async function TrendingSection() {
+  const trending = await getTrending('movie', 'day');
+  return (
+    <MediaRow
+      title="Trending Movies"
+      items={trending.results.map((item) => ({
+        ...item,
+        title: 'title' in item ? item.title : undefined,
+        name: 'name' in item ? item.name : undefined,
+        media_type: 'movie',
+      }))}
+      href="/trending?type=movie"
+    />
+  );
+}
+
+async function NowPlayingSection() {
+  const movies = await getNowPlayingMovies();
+  return (
+    <MediaRow
+      title="Now Playing"
+      items={movies.results.map((movie) => ({
+        ...movie,
+        media_type: 'movie' as const,
+      }))}
+      href="/?sort=now_playing"
+    />
+  );
+}
+
+async function PopularMoviesSection() {
+  const movies = await getPopularMovies();
+  return (
+    <MediaRow
+      title="Popular Movies"
+      items={movies.results.map((movie) => ({
+        ...movie,
+        media_type: 'movie' as const,
+      }))}
+      href="/?sort=popular"
+    />
+  );
+}
+
+async function TopRatedSection() {
+  const movies = await getTopRatedMovies();
+  return (
+    <MediaRow
+      title="Top Rated Movies"
+      items={movies.results.map((movie) => ({
+        ...movie,
+        media_type: 'movie' as const,
+      }))}
+      href="/?sort=top_rated"
+    />
+  );
+}
+
+async function UpcomingSection() {
+  const movies = await getUpcomingMovies();
+  return (
+    <MediaRow
+      title="Coming Soon"
+      items={movies.results.map((movie) => ({
+        ...movie,
+        media_type: 'movie' as const,
+      }))}
+      href="/?sort=upcoming"
+    />
+  );
+}
+
+async function ActionMoviesSection() {
+  const { discoverMovies } = await import('@/lib/tmdb');
+  const movies = await discoverMovies({ with_genres: '28' });
+  return (
+    <MediaRow
+      title="Action Movies"
+      items={movies.results.map((movie) => ({
+        ...movie,
+        media_type: 'movie' as const,
+      }))}
+      href="/genre/28"
+      variant="backdrop"
+    />
+  );
+}
+
+async function ComedyMoviesSection() {
+  const { discoverMovies } = await import('@/lib/tmdb');
+  const movies = await discoverMovies({ with_genres: '35' });
+  return (
+    <MediaRow
+      title="Comedy Movies"
+      items={movies.results.map((movie) => ({
+        ...movie,
+        media_type: 'movie' as const,
+      }))}
+      href="/genre/35"
+    />
+  );
+}
+
+async function HorrorMoviesSection() {
+  const { discoverMovies } = await import('@/lib/tmdb');
+  const movies = await discoverMovies({ with_genres: '27' });
+  return (
+    <MediaRow
+      title="Horror Movies"
+      items={movies.results.map((movie) => ({
+        ...movie,
+        media_type: 'movie' as const,
+      }))}
+      href="/genre/27"
+    />
+  );
+}
+
+async function SciFiMoviesSection() {
+  const { discoverMovies } = await import('@/lib/tmdb');
+  const movies = await discoverMovies({ with_genres: '878' });
+  return (
+    <MediaRow
+      title="Sci-Fi Movies"
+      items={movies.results.map((movie) => ({
+        ...movie,
+        media_type: 'movie' as const,
+      }))}
+      href="/genre/878"
+      variant="backdrop"
+    />
+  );
+}
+
+export default function MoviesPage() {
+  return (
+    <div className="min-h-screen">
+      <Suspense fallback={<HeroSkeleton />}>
+        <HeroSection />
+      </Suspense>
+
+      <div className="relative z-10 -mt-24 space-y-12 pb-8">
+        <Suspense fallback={<MediaRowSkeleton />}>
+          <TrendingSection />
+        </Suspense>
+
+        <Suspense fallback={<MediaRowSkeleton />}>
+          <NowPlayingSection />
+        </Suspense>
+
+        <StudioRow title="Studios" studios={MOVIE_STUDIOS} type="movie" />
+
+        <Suspense fallback={<MediaRowSkeleton variant="backdrop" />}>
+          <ActionMoviesSection />
+        </Suspense>
+
+        <Suspense fallback={<MediaRowSkeleton />}>
+          <PopularMoviesSection />
+        </Suspense>
+
+        <Suspense fallback={<MediaRowSkeleton />}>
+          <TopRatedSection />
+        </Suspense>
+
+        <Suspense fallback={<MediaRowSkeleton variant="backdrop" />}>
+          <SciFiMoviesSection />
+        </Suspense>
+
+        <Suspense fallback={<MediaRowSkeleton />}>
+          <ComedyMoviesSection />
+        </Suspense>
+
+        <Suspense fallback={<MediaRowSkeleton />}>
+          <HorrorMoviesSection />
+        </Suspense>
+
+        <Suspense fallback={<MediaRowSkeleton />}>
+          <UpcomingSection />
+        </Suspense>
+      </div>
+    </div>
+  );
+}
