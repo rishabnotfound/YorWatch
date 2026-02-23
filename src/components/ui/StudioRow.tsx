@@ -9,6 +9,7 @@ interface Studio {
   id: number;
   name: string;
   logo: string;
+  preserveColor?: boolean;
 }
 
 interface StudioRowProps {
@@ -22,11 +23,11 @@ export function StudioRow({ title, studios, type }: StudioRowProps) {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-xl md:text-2xl font-semibold text-white px-4 md:px-8 lg:px-12">
+      <h2 className="text-xl md:text-2xl font-bold text-white px-4 md:px-8 lg:px-12">
         {title}
       </h2>
       <div
-        className="flex gap-4 overflow-x-auto px-4 md:px-8 lg:px-12 pb-4"
+        className="flex gap-3 md:gap-4 overflow-x-auto px-4 md:px-8 lg:px-12 pb-4"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {studios.map((studio, index) => (
@@ -38,22 +39,23 @@ export function StudioRow({ title, studios, type }: StudioRowProps) {
           >
             <Link
               href={`${baseUrl}/${studio.id}`}
-              className="flex-shrink-0 group"
+              className="flex-shrink-0 group block"
             >
-              <div className="w-32 h-20 md:w-40 md:h-24 rounded-xl bg-surface-light flex items-center justify-center p-4 transition-all group-hover:bg-surface-lighter group-hover:ring-2 ring-primary/50">
+              <div className="w-28 h-16 md:w-36 md:h-20 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-3 transition-all group-hover:bg-white/10 group-hover:border-primary/30 group-hover:scale-105">
                 <div className="relative w-full h-full">
                   <Image
                     src={getImageUrl(studio.logo, 'w185')}
                     alt={studio.name}
                     fill
-                    className="object-contain filter brightness-0 invert opacity-70 group-hover:opacity-100 transition-opacity"
-                    sizes="160px"
+                    className={`object-contain transition-opacity ${
+                      studio.preserveColor
+                        ? 'opacity-80 group-hover:opacity-100'
+                        : 'filter brightness-0 invert opacity-60 group-hover:opacity-100'
+                    }`}
+                    sizes="144px"
                   />
                 </div>
               </div>
-              <p className="mt-2 text-xs text-white/50 text-center group-hover:text-white/70 transition-colors">
-                {studio.name}
-              </p>
             </Link>
           </motion.div>
         ))}

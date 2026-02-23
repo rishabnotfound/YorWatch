@@ -5,6 +5,9 @@ import {
   MediaRow,
   MediaRowSkeleton,
   StudioRow,
+  TVTop10Carousel,
+  Top10Skeleton,
+  ContinueWatching,
 } from '@/components/ui';
 import {
   getTrending,
@@ -25,28 +28,12 @@ async function HeroSection() {
   const trending = await getTrending('tv', 'day');
   return (
     <HeroCarousel
-      items={trending.results.slice(0, 8).map((item) => ({
+      items={trending.results.slice(0, 5).map((item) => ({
         ...item,
         title: 'title' in item ? item.title : undefined,
         name: 'name' in item ? item.name : undefined,
         media_type: 'tv',
       }))}
-    />
-  );
-}
-
-async function TrendingSection() {
-  const trending = await getTrending('tv', 'day');
-  return (
-    <MediaRow
-      title="Trending TV Shows"
-      items={trending.results.map((item) => ({
-        ...item,
-        title: 'title' in item ? item.title : undefined,
-        name: 'name' in item ? item.name : undefined,
-        media_type: 'tv',
-      }))}
-      href="/trending?type=tv"
     />
   );
 }
@@ -60,7 +47,6 @@ async function AiringTodaySection() {
         ...show,
         media_type: 'tv' as const,
       }))}
-      href="/tv?sort=airing_today"
     />
   );
 }
@@ -74,7 +60,6 @@ async function OnTheAirSection() {
         ...show,
         media_type: 'tv' as const,
       }))}
-      href="/tv?sort=on_the_air"
     />
   );
 }
@@ -88,7 +73,6 @@ async function PopularTVSection() {
         ...show,
         media_type: 'tv' as const,
       }))}
-      href="/tv?sort=popular"
     />
   );
 }
@@ -102,7 +86,6 @@ async function TopRatedSection() {
         ...show,
         media_type: 'tv' as const,
       }))}
-      href="/tv?sort=top_rated"
     />
   );
 }
@@ -117,7 +100,6 @@ async function DramaSection() {
         media_type: 'tv' as const,
       }))}
       href="/tv/genre/18"
-      variant="backdrop"
     />
   );
 }
@@ -160,21 +142,23 @@ async function SciFiFantasySection() {
         media_type: 'tv' as const,
       }))}
       href="/tv/genre/10765"
-      variant="backdrop"
     />
   );
 }
 
 export default function TVShowsPage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-black">
       <Suspense fallback={<HeroSkeleton />}>
         <HeroSection />
       </Suspense>
 
-      <div className="relative z-10 -mt-24 space-y-12 pb-8">
-        <Suspense fallback={<MediaRowSkeleton />}>
-          <TrendingSection />
+      {/* Continue Watching - appears if user has watched content */}
+      <ContinueWatching />
+
+      <div className="relative z-10 space-y-8 pt-8 pb-16">
+        <Suspense fallback={<Top10Skeleton />}>
+          <TVTop10Carousel />
         </Suspense>
 
         <Suspense fallback={<MediaRowSkeleton />}>
@@ -183,7 +167,7 @@ export default function TVShowsPage() {
 
         <StudioRow title="Networks" studios={TV_NETWORKS} type="tv" />
 
-        <Suspense fallback={<MediaRowSkeleton variant="backdrop" />}>
+        <Suspense fallback={<MediaRowSkeleton />}>
           <DramaSection />
         </Suspense>
 
@@ -195,7 +179,7 @@ export default function TVShowsPage() {
           <OnTheAirSection />
         </Suspense>
 
-        <Suspense fallback={<MediaRowSkeleton variant="backdrop" />}>
+        <Suspense fallback={<MediaRowSkeleton />}>
           <SciFiFantasySection />
         </Suspense>
 

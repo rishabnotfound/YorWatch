@@ -5,6 +5,9 @@ import {
   MediaRow,
   MediaRowSkeleton,
   StudioRow,
+  MovieTop10Carousel,
+  Top10Skeleton,
+  ContinueWatching,
 } from '@/components/ui';
 import {
   getTrending,
@@ -19,28 +22,12 @@ async function HeroSection() {
   const trending = await getTrending('movie', 'day');
   return (
     <HeroCarousel
-      items={trending.results.slice(0, 8).map((item) => ({
+      items={trending.results.slice(0, 5).map((item) => ({
         ...item,
         title: 'title' in item ? item.title : undefined,
         name: 'name' in item ? item.name : undefined,
         media_type: 'movie',
       }))}
-    />
-  );
-}
-
-async function TrendingSection() {
-  const trending = await getTrending('movie', 'day');
-  return (
-    <MediaRow
-      title="Trending Movies"
-      items={trending.results.map((item) => ({
-        ...item,
-        title: 'title' in item ? item.title : undefined,
-        name: 'name' in item ? item.name : undefined,
-        media_type: 'movie',
-      }))}
-      href="/trending?type=movie"
     />
   );
 }
@@ -54,7 +41,6 @@ async function NowPlayingSection() {
         ...movie,
         media_type: 'movie' as const,
       }))}
-      href="/?sort=now_playing"
     />
   );
 }
@@ -68,7 +54,6 @@ async function PopularMoviesSection() {
         ...movie,
         media_type: 'movie' as const,
       }))}
-      href="/?sort=popular"
     />
   );
 }
@@ -82,7 +67,6 @@ async function TopRatedSection() {
         ...movie,
         media_type: 'movie' as const,
       }))}
-      href="/?sort=top_rated"
     />
   );
 }
@@ -96,7 +80,6 @@ async function UpcomingSection() {
         ...movie,
         media_type: 'movie' as const,
       }))}
-      href="/?sort=upcoming"
     />
   );
 }
@@ -112,7 +95,6 @@ async function ActionMoviesSection() {
         media_type: 'movie' as const,
       }))}
       href="/genre/28"
-      variant="backdrop"
     />
   );
 }
@@ -158,21 +140,23 @@ async function SciFiMoviesSection() {
         media_type: 'movie' as const,
       }))}
       href="/genre/878"
-      variant="backdrop"
     />
   );
 }
 
 export default function MoviesPage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-black">
       <Suspense fallback={<HeroSkeleton />}>
         <HeroSection />
       </Suspense>
 
-      <div className="relative z-10 -mt-24 space-y-12 pb-8">
-        <Suspense fallback={<MediaRowSkeleton />}>
-          <TrendingSection />
+      {/* Continue Watching - appears if user has watched content */}
+      <ContinueWatching />
+
+      <div className="relative z-10 space-y-8 pt-8 pb-16">
+        <Suspense fallback={<Top10Skeleton />}>
+          <MovieTop10Carousel />
         </Suspense>
 
         <Suspense fallback={<MediaRowSkeleton />}>
@@ -181,7 +165,7 @@ export default function MoviesPage() {
 
         <StudioRow title="Studios" studios={MOVIE_STUDIOS} type="movie" />
 
-        <Suspense fallback={<MediaRowSkeleton variant="backdrop" />}>
+        <Suspense fallback={<MediaRowSkeleton />}>
           <ActionMoviesSection />
         </Suspense>
 
@@ -193,7 +177,7 @@ export default function MoviesPage() {
           <TopRatedSection />
         </Suspense>
 
-        <Suspense fallback={<MediaRowSkeleton variant="backdrop" />}>
+        <Suspense fallback={<MediaRowSkeleton />}>
           <SciFiMoviesSection />
         </Suspense>
 

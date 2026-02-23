@@ -60,6 +60,16 @@ export interface MovieDetails extends Movie {
   recommendations?: { results: Movie[] };
 }
 
+export interface Season {
+  id: number;
+  name: string;
+  season_number: number;
+  episode_count: number;
+  poster_path: string | null;
+  air_date: string | null;
+  overview: string;
+}
+
 export interface TVShowDetails extends TVShow {
   tagline: string;
   episode_run_time: number[];
@@ -69,6 +79,7 @@ export interface TVShowDetails extends TVShow {
   status: string;
   created_by: { id: number; name: string; profile_path: string | null }[];
   networks: { id: number; name: string; logo_path: string | null }[];
+  seasons?: Season[];
   credits?: { cast: Cast[] };
   similar?: { results: TVShow[] };
   recommendations?: { results: TVShow[] };

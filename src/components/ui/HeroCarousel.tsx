@@ -5,7 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBackdropUrl, getImageUrl } from '@/lib/tmdb';
-import { formatRating, getTitle, getDate, formatYear, truncateText, getMediaType } from '@/lib/utils';
+import { getTitle, getDate, formatYear, truncateText, getMediaType } from '@/lib/utils';
+import { CircularRating } from './CircularRating';
 
 interface HeroItem {
   id: number;
@@ -28,8 +29,9 @@ interface HeroCarouselProps {
 export function HeroCarousel({ items, autoPlayInterval = 6000 }: HeroCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [logos, setLogos] = useState<Record<number, string | null>>({});
 
-  const displayItems = items.slice(0, 8);
+  const displayItems = items.slice(0, 5);
 
   const goToSlide = useCallback((index: number) => {
     setCurrentIndex(index);
@@ -39,9 +41,20 @@ export function HeroCarousel({ items, autoPlayInterval = 6000 }: HeroCarouselPro
     setCurrentIndex((prev) => (prev + 1) % displayItems.length);
   }, [displayItems.length]);
 
-  const goToPrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + displayItems.length) % displayItems.length);
-  }, [displayItems.length]);
+  useEffect(() => {
+    displayItems.forEach(async (item) => {
+      const mediaType = getMediaType(item);
+      try {
+        const res = await fetch(`/api/images/${mediaType}/${item.id}`);
+        const data = await res.json();
+        if (data.logo) {
+          setLogos((prev) => ({ ...prev, [item.id]: data.logo }));
+        }
+      } catch {
+        // Silently fail
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (isPaused) return;
@@ -56,20 +69,32 @@ export function HeroCarousel({ items, autoPlayInterval = 6000 }: HeroCarouselPro
   const date = getDate(currentItem);
   const year = formatYear(date);
   const mediaType = getMediaType(currentItem);
+  const currentLogo = logos[currentItem.id];
+
+  // Build play URL with params
+  const playParams = new URLSearchParams({
+    id: currentItem.id.toString(),
+    type: mediaType,
+    title: title,
+    poster: currentItem.poster_path || '',
+    backdrop: currentItem.backdrop_path || '',
+  });
+  const playUrl = `/play?${playParams.toString()}`;
 
   return (
     <section
-      className="relative h-[75vh] md:h-[85vh] w-full overflow-hidden"
+      className="relative h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] w-full overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
+      {/* Background Image */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.7 }}
           className="absolute inset-0"
         >
           <Image
@@ -80,118 +105,121 @@ export function HeroCarousel({ items, autoPlayInterval = 6000 }: HeroCarouselPro
             className="object-cover"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30" />
+          {/* Gradient overlays */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
         </motion.div>
       </AnimatePresence>
 
-      <div className="relative h-full flex flex-col justify-end pb-32 md:pb-40">
-        <div className="px-4 md:px-8 lg:px-12 max-w-3xl">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-            >
-              <span className="inline-block px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary bg-primary/10 rounded-full mb-4">
-                {mediaType === 'movie' ? 'Movie' : 'TV Series'}
-              </span>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 leading-tight">
-                {title}
-              </h1>
-              <div className="flex items-center gap-4 mb-4 text-white/80">
-                <span className="flex items-center gap-1">
-                  <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  <span className="font-semibold">{formatRating(currentItem.vote_average)}</span>
-                </span>
-                <span>{year}</span>
-              </div>
-              <p className="text-base md:text-lg text-white/70 leading-relaxed mb-8 max-w-xl">
-                {truncateText(currentItem.overview, 180)}
-              </p>
-              <div className="flex items-center gap-4">
-                <Link
-                  href={`/${mediaType}/${currentItem.id}`}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-light text-white font-semibold rounded-lg transition-colors"
+      {/* Content */}
+      <div className="relative h-full flex flex-col justify-between">
+        {/* Main Content Area */}
+        <div className="flex-1 flex items-center">
+          <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 pt-16 sm:pt-20">
+            <div className="max-w-3xl">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentIndex}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  className="space-y-4 sm:space-y-5 md:space-y-6"
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                  </svg>
-                  Watch Now
-                </Link>
-                <Link
-                  href={`/${mediaType}/${currentItem.id}`}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-colors backdrop-blur-sm"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  More Info
-                </Link>
-              </div>
-            </motion.div>
-          </AnimatePresence>
+                  {/* Logo or Title */}
+                  {currentLogo ? (
+                    <div className="relative h-14 sm:h-20 md:h-24 lg:h-28 w-full max-w-sm md:max-w-md">
+                      <Image
+                        src={`https://image.tmdb.org/t/p/w500${currentLogo}`}
+                        alt={title}
+                        fill
+                        className="object-contain object-left drop-shadow-2xl"
+                        sizes="(max-width: 640px) 280px, 400px"
+                      />
+                    </div>
+                  ) : (
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight drop-shadow-lg">
+                      {title}
+                    </h1>
+                  )}
+
+                  {/* Rating & Year */}
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <CircularRating rating={currentItem.vote_average} size="sm" />
+                    <span className="text-white/80 text-sm font-medium">{year}</span>
+                  </div>
+
+                  {/* Overview - Hidden on very small screens */}
+                  <p className="hidden sm:block text-sm md:text-base text-white/70 leading-relaxed line-clamp-2 md:line-clamp-3 max-w-xl">
+                    {truncateText(currentItem.overview, 180)}
+                  </p>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-3 pt-2">
+                    <Link
+                      href={playUrl}
+                      className="inline-flex items-center gap-2 px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 bg-primary hover:bg-primary-light text-white text-sm sm:text-base font-semibold rounded-xl transition-all hover:scale-105 shadow-lg shadow-primary/30"
+                    >
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                      </svg>
+                      <span>Trailer</span>
+                    </Link>
+                    <Link
+                      href={`/${mediaType}/${currentItem.id}`}
+                      className="inline-flex items-center gap-2 px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 bg-white/10 hover:bg-white/20 text-white text-sm sm:text-base font-semibold rounded-xl transition-all backdrop-blur-sm border border-white/10"
+                    >
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Info</span>
+                    </Link>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
 
-        <div className="absolute left-4 md:left-8 lg:left-12 top-1/2 -translate-y-1/2 hidden md:flex flex-col gap-2">
-          <button
-            onClick={goToPrev}
-            className="p-3 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm transition-colors"
-            aria-label="Previous"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button
-            onClick={goToNext}
-            className="p-3 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm transition-colors"
-            aria-label="Next"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="absolute bottom-8 right-4 md:right-8 lg:right-12 flex gap-2 items-end">
-          {displayItems.map((item, index) => {
-            const isActive = index === currentIndex;
-            return (
-              <button
-                key={item.id}
-                onClick={() => goToSlide(index)}
-                className={`relative overflow-hidden rounded-lg transition-all duration-300 ${
-                  isActive
-                    ? 'w-20 h-28 md:w-24 md:h-32 ring-2 ring-primary'
-                    : 'w-14 h-20 md:w-16 md:h-24 opacity-50 hover:opacity-80'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              >
-                <Image
-                  src={getImageUrl(item.poster_path, 'w185')}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="96px"
-                />
-                {isActive && (
-                  <motion.div
-                    className="absolute bottom-0 left-0 right-0 h-1 bg-primary"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: autoPlayInterval / 1000, ease: 'linear' }}
-                    style={{ transformOrigin: 'left' }}
-                    key={`progress-${currentIndex}`}
-                  />
-                )}
-              </button>
-            );
-          })}
+        {/* Thumbnail Navigation */}
+        <div className="pb-4 sm:pb-6 md:pb-8 px-4 sm:px-6 md:px-8 lg:px-12">
+          <div className="flex justify-center sm:justify-end">
+            <div className="flex gap-1.5 sm:gap-2 items-end">
+              {displayItems.map((item, index) => {
+                const isActive = index === currentIndex;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => goToSlide(index)}
+                    className={`relative overflow-hidden rounded-md sm:rounded-lg transition-all duration-300 ${
+                      isActive
+                        ? 'w-10 h-14 sm:w-12 sm:h-18 md:w-14 md:h-20 lg:w-16 lg:h-24 ring-2 ring-primary shadow-lg shadow-primary/20'
+                        : 'w-7 h-10 sm:w-9 sm:h-13 md:w-10 md:h-14 lg:w-12 lg:h-18 opacity-50 hover:opacity-80 grayscale hover:grayscale-0'
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  >
+                    <Image
+                      src={getImageUrl(item.poster_path, 'w185')}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                    {isActive && (
+                      <motion.div
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        transition={{ duration: autoPlayInterval / 1000, ease: 'linear' }}
+                        style={{ transformOrigin: 'left' }}
+                        key={`progress-${currentIndex}`}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </section>

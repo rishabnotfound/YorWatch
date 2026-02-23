@@ -93,9 +93,6 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <div className="min-h-screen pt-24 md:pt-28 pb-16">
       <div className="px-4 md:px-8 lg:px-12">
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">Search</h1>
-        <SearchInput className="max-w-2xl mb-12" autoFocus />
-
         <Suspense key={query} fallback={<MediaGridSkeleton />}>
           <SearchResults query={query} />
         </Suspense>

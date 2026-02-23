@@ -2,7 +2,7 @@
   "name": "yorwatch",
   "version": "1.0.0",
   "author": "rishabnotfound",
-  "description": "A Minimal TMDB Browsing Showcase",
+  "description": "A beautiful movie and TV show discovery app powered by TMDB",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,14 +10,22 @@
     "start": "next start",
     "lint": "next lint"
   },
-  "keywords": ["movies", "tv", "tmdb"],
+  "keywords": [
+    "movies",
+    "tv",
+    "tmdb"
+  ],
   "license": "MIT",
   "dependencies": {
+    "@tabler/icons-react": "^3.37.1",
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.9",
     "next": "^14.2.15",
+    "plyr": "^3.8.4",
+    "plyr-react": "^6.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "swiper": "^12.1.2",
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
