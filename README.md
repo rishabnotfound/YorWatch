@@ -10,11 +10,9 @@
   <a href="https://yorwatch.vercel.app">View Demo</a>
 </p>
 
----
-
 ## Preview 
 
-
+<img width="2928" height="1678" alt="image" src="https://github.com/user-attachments/assets/bbea4465-2cf6-47bd-84f2-7ef36743f881" />
 
 ## What is YorWatch?
 
