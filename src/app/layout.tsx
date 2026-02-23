@@ -19,10 +19,16 @@ export const metadata: Metadata = {
   description: `Discover and explore movies and TV shows with ${site_name} - a minimal, cinematic browsing experience.`,
   keywords: ['movies', 'tv shows', 'streaming', 'discover', 'trending'],
   authors: [{ name: site_name }],
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
   openGraph: {
     title: site_name,
     description: 'Discover and explore movies and TV shows',
     type: 'website',
+    images: ['/logo.png'],
   },
 };
 
