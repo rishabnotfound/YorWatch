@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { AuthProvider } from '@/contexts/AuthContext';
 import './globals.css';
+import { site_name } from '../../config.js';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -12,14 +13,14 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'YorWatch - Discover Movies & TV Shows',
-    template: '%s | YorWatch',
+    default: `${site_name} - Discover Movies & TV Shows`,
+    template: `%s | ${site_name}`,
   },
-  description: 'Discover and explore movies and TV shows with YorWatch - a minimal, cinematic browsing experience.',
+  description: `Discover and explore movies and TV shows with ${site_name} - a minimal, cinematic browsing experience.`,
   keywords: ['movies', 'tv shows', 'streaming', 'discover', 'trending'],
-  authors: [{ name: 'YorWatch' }],
+  authors: [{ name: site_name }],
   openGraph: {
-    title: 'YorWatch',
+    title: site_name,
     description: 'Discover and explore movies and TV shows',
     type: 'website',
   },

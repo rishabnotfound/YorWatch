@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { IconEye, IconEyeOff, IconLoader2 } from '@tabler/icons-react';
+import { site_name } from '../../../config';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -118,7 +119,7 @@ export default function LoginPage() {
               <div className="w-20 h-20 rounded-full border-2 border-primary/50 overflow-hidden">
                 <Image
                   src="/logo.png"
-                  alt="YorWatch"
+                  alt={site_name}
                   width={80}
                   height={80}
                   className="object-cover"

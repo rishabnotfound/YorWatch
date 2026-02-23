@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getImageUrl, getBackdropUrl } from '@/lib/tmdb';
 import { IconX, IconPlayerPlay, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import { site_name } from '../../../config.js';
 
-const CONTINUE_WATCHING_KEY = 'yorwatch-continuewatching';
+const CONTINUE_WATCHING_KEY = `${site_name}-continuewatching`;
 
 interface WatchItem {
   id: number;

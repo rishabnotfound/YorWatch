@@ -1,4 +1,6 @@
-const SEARCH_HISTORY_KEY = 'yorwatch_search_history';
+import { site_name } from "../../config.js";
+
+const SEARCH_HISTORY_KEY = `${site_name}_search_history`;
 const MAX_HISTORY_ITEMS = 10;
 
 export function getSearchHistory(): string[] {

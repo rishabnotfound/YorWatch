@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { TMDBUser, getAvatarUrl } from '@/lib/auth';
+import { site_name } from '../../config.js';
 
 interface AuthContextType {
   user: TMDBUser | null;
@@ -15,7 +16,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_STORAGE_KEY = 'yorwatch_auth';
+const AUTH_STORAGE_KEY = `${site_name}_auth`;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<TMDBUser | null>(null);

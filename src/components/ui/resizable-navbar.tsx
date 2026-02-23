@@ -10,6 +10,7 @@ import {
 } from 'framer-motion';
 import Link from 'next/link';
 import React, { useRef, useState } from 'react';
+import { site_name } from '../../../config.js';
 
 interface NavbarProps {
   children: React.ReactNode;
@@ -231,12 +232,12 @@ export const NavbarLogo = ({ className }: NavbarLogoProps) => {
       <div className="relative h-10 w-10 overflow-hidden rounded-full border-2 border-primary/50">
         <img
           src="/logo.png"
-          alt="YorWatch"
+          alt={site_name}
           className="h-full w-full object-cover"
         />
       </div>
       <span className="text-xl font-bold bg-gradient-to-r from-primary to-red-400 bg-clip-text text-transparent">
-        YorWatch
+        {site_name}
       </span>
     </Link>
   );

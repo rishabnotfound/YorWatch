@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { IconBrandGithub, IconHeart } from '@tabler/icons-react';
+import { site_name } from '../../../config.js';
 
 export function Footer() {
   return (
@@ -14,14 +15,14 @@ export function Footer() {
                 <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-primary/30">
                   <Image
                     src="/logo.png"
-                    alt="YorWatch"
+                    alt={site_name}
                     width={36}
                     height={36}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <span className="text-xl font-bold bg-gradient-to-r from-primary to-red-400 bg-clip-text text-transparent">
-                  YorWatch
+                  {site_name}
                 </span>
               </Link>
               <p className="text-white/40 text-sm text-center md:text-left max-w-xs">

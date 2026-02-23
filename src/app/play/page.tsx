@@ -7,8 +7,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getImageUrl } from '@/lib/tmdb';
 import { IconX, IconLoader2, IconAlertCircle } from '@tabler/icons-react';
+import { site_name } from '../../../config.js';
 
-const CONTINUE_WATCHING_KEY = 'yorwatch-continuewatching';
+const CONTINUE_WATCHING_KEY = `${site_name}-continuewatching`;
 
 interface MediaInfo {
   id: number;
