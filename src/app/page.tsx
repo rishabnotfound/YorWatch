@@ -9,6 +9,7 @@ import {
   Top10Skeleton,
   ContinueWatching,
 } from '@/components/ui';
+import { SplashProvider } from '@/components/layout/SplashProvider';
 import {
   getTrending,
   getPopularMovies,
@@ -146,53 +147,55 @@ async function SciFiMoviesSection() {
 
 export default function MoviesPage() {
   return (
-    <div className="min-h-screen bg-black">
-      <Suspense fallback={<HeroSkeleton />}>
-        <HeroSection />
-      </Suspense>
-
-      {/* Continue Watching - appears if user has watched content */}
-      <ContinueWatching />
-
-      <div className="relative z-10 space-y-8 pt-8 pb-16">
-        <Suspense fallback={<Top10Skeleton />}>
-          <MovieTop10Carousel />
+    <SplashProvider>
+      <div className="min-h-screen bg-black">
+        <Suspense fallback={<HeroSkeleton />}>
+          <HeroSection />
         </Suspense>
 
-        <Suspense fallback={<MediaRowSkeleton />}>
-          <NowPlayingSection />
-        </Suspense>
+        {/* Continue Watching - appears if user has watched content */}
+        <ContinueWatching />
 
-        <StudioRow title="Studios" studios={MOVIE_STUDIOS} type="movie" />
+        <div className="relative z-10 space-y-8 pt-8 pb-16">
+          <Suspense fallback={<Top10Skeleton />}>
+            <MovieTop10Carousel />
+          </Suspense>
 
-        <Suspense fallback={<MediaRowSkeleton />}>
-          <ActionMoviesSection />
-        </Suspense>
+          <Suspense fallback={<MediaRowSkeleton />}>
+            <NowPlayingSection />
+          </Suspense>
 
-        <Suspense fallback={<MediaRowSkeleton />}>
-          <PopularMoviesSection />
-        </Suspense>
+          <StudioRow title="Studios" studios={MOVIE_STUDIOS} type="movie" />
 
-        <Suspense fallback={<MediaRowSkeleton />}>
-          <TopRatedSection />
-        </Suspense>
+          <Suspense fallback={<MediaRowSkeleton />}>
+            <ActionMoviesSection />
+          </Suspense>
 
-        <Suspense fallback={<MediaRowSkeleton />}>
-          <SciFiMoviesSection />
-        </Suspense>
+          <Suspense fallback={<MediaRowSkeleton />}>
+            <PopularMoviesSection />
+          </Suspense>
 
-        <Suspense fallback={<MediaRowSkeleton />}>
-          <ComedyMoviesSection />
-        </Suspense>
+          <Suspense fallback={<MediaRowSkeleton />}>
+            <TopRatedSection />
+          </Suspense>
 
-        <Suspense fallback={<MediaRowSkeleton />}>
-          <HorrorMoviesSection />
-        </Suspense>
+          <Suspense fallback={<MediaRowSkeleton />}>
+            <SciFiMoviesSection />
+          </Suspense>
 
-        <Suspense fallback={<MediaRowSkeleton />}>
-          <UpcomingSection />
-        </Suspense>
+          <Suspense fallback={<MediaRowSkeleton />}>
+            <ComedyMoviesSection />
+          </Suspense>
+
+          <Suspense fallback={<MediaRowSkeleton />}>
+            <HorrorMoviesSection />
+          </Suspense>
+
+          <Suspense fallback={<MediaRowSkeleton />}>
+            <UpcomingSection />
+          </Suspense>
+        </div>
       </div>
-    </div>
+    </SplashProvider>
   );
 }
