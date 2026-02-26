@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -43,6 +43,11 @@ export default function MyListPage() {
   const [activeMediaType, setActiveMediaType] = useState<MediaType>('movies');
   const [items, setItems] = useState<MediaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const loaderRef = useRef<HTMLDivElement>(null);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -51,19 +56,22 @@ export default function MyListPage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Fetch list data
+  // Fetch list data (initial load)
   useEffect(() => {
     const fetchList = async () => {
       if (!isAuthenticated || !user || !sessionId) return;
 
       setIsLoading(true);
+      setPage(1);
       try {
         const response = await fetch(
-          `/api/account/lists?accountId=${user.id}&sessionId=${sessionId}&listType=${activeTab}&mediaType=${activeMediaType}`
+          `/api/account/lists?accountId=${user.id}&sessionId=${sessionId}&listType=${activeTab}&mediaType=${activeMediaType}&page=1`
         );
         if (response.ok) {
           const data = await response.json();
           setItems(data.results || []);
+          setTotalPages(data.total_pages || 1);
+          setTotalResults(data.total_results || 0);
         }
       } catch (error) {
         console.error('Failed to fetch list:', error);
@@ -75,6 +83,50 @@ export default function MyListPage() {
 
     fetchList();
   }, [isAuthenticated, user, sessionId, activeTab, activeMediaType]);
+
+  // Load more items
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || page >= totalPages || !user || !sessionId) return;
+
+    setIsLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const response = await fetch(
+        `/api/account/lists?accountId=${user.id}&sessionId=${sessionId}&listType=${activeTab}&mediaType=${activeMediaType}&page=${nextPage}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setItems(prev => {
+          const existingIds = new Set(prev.map(item => item.id));
+          const newItems = (data.results || []).filter((item: MediaItem) => !existingIds.has(item.id));
+          return [...prev, ...newItems];
+        });
+        setPage(nextPage);
+      }
+    } catch (error) {
+      console.error('Failed to load more:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [page, totalPages, isLoadingMore, user, sessionId, activeTab, activeMediaType]);
+
+  // Intersection observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoading && page < totalPages) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loadMore, isLoading, page, totalPages]);
 
   const getActiveTabInfo = () => tabs.find(t => t.id === activeTab)!;
 
@@ -115,7 +167,7 @@ export default function MyListPage() {
               <div className="min-w-0">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white flex items-center gap-2 sm:gap-3">
                   <span className="truncate">My Collection</span>
-                  <span className="px-2.5 py-1 bg-white/10 rounded-lg text-sm sm:text-base font-semibold text-white/70">{items.length}</span>
+                  <span className="px-2.5 py-1 bg-white/10 rounded-lg text-sm sm:text-base font-semibold text-white/70">{totalResults}</span>
                   <IconSparkles className="w-5 h-5 sm:w-7 sm:h-7 text-primary flex-shrink-0" />
                 </h1>
                 <p className="text-white/50 text-sm sm:text-base mt-0.5 sm:mt-1 truncate">
@@ -242,36 +294,51 @@ export default function MyListPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6"
             >
-              {items.map((item, index) => {
-                const mediaTypeUrl = activeMediaType === 'movies' ? 'movie' : 'tv';
+              <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
+                {items.map((item, index) => {
+                  const mediaTypeUrl = activeMediaType === 'movies' ? 'movie' : 'tv';
 
-                return (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="relative"
-                  >
-                    {/* User's Rating Badge for rated items */}
-                    {activeTab === 'rated' && item.rating && (
-                      <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-20 flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 bg-yellow-500 rounded-md sm:rounded-lg shadow-lg">
-                        <IconStar className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-current text-black" />
-                        <span className="text-[10px] sm:text-xs font-bold text-black">{item.rating}/10</span>
-                      </div>
-                    )}
-                    <MediaCard
-                      item={{
-                        ...item,
-                        media_type: mediaTypeUrl,
-                      }}
-                      showHoverCard={true}
-                    />
-                  </motion.div>
-                );
-              })}
+                  return (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Math.min(index * 0.03, 0.3) }}
+                      className="relative"
+                    >
+                      {/* User's Rating Badge for rated items */}
+                      {activeTab === 'rated' && item.rating && (
+                        <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-20 flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 bg-yellow-500 rounded-md sm:rounded-lg shadow-lg">
+                          <IconStar className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-current text-black" />
+                          <span className="text-[10px] sm:text-xs font-bold text-black">{item.rating}/10</span>
+                        </div>
+                      )}
+                      <MediaCard
+                        item={{
+                          ...item,
+                          media_type: mediaTypeUrl,
+                        }}
+                        showHoverCard={true}
+                      />
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Infinite scroll loader */}
+              <div ref={loaderRef} className="py-8">
+                {isLoadingMore && (
+                  <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
+                    {[...Array(6)].map((_, i) => (
+                      <MediaCardSkeleton key={i} />
+                    ))}
+                  </div>
+                )}
+                {!isLoadingMore && page >= totalPages && items.length > 0 && totalPages > 1 && (
+                  <p className="text-center text-white/40 text-sm">You&apos;ve reached the end</p>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
