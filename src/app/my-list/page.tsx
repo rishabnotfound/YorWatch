@@ -47,7 +47,7 @@ export default function MyListPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
-  const loaderRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function MyListPage() {
 
   // Load more items
   const loadMore = useCallback(async () => {
-    if (isLoadingMore || page >= totalPages || !user || !sessionId) return;
+    if (isLoading || isLoadingMore || page >= totalPages || !user || !sessionId) return;
 
     setIsLoadingMore(true);
     try {
@@ -108,25 +108,70 @@ export default function MyListPage() {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [page, totalPages, isLoadingMore, user, sessionId, activeTab, activeMediaType]);
+  }, [isLoading, page, totalPages, isLoadingMore, user, sessionId, activeTab, activeMediaType]);
 
-  // Intersection observer for infinite scroll
-  useEffect(() => {
+  // Callback ref for infinite scroll - triggers when the loader element mounts/unmounts
+  const loaderRef = useCallback((node: HTMLDivElement | null) => {
+    // Cleanup previous observer
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+
+    if (!node) return;
+
+    // Create new observer
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isLoading && page < totalPages) {
+        if (entries[0].isIntersecting) {
           loadMore();
         }
       },
-      { threshold: 0.1, rootMargin: '100px' }
+      { threshold: 0.1, rootMargin: '200px' }
     );
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
-    }
+    observer.observe(node);
+    observerRef.current = observer;
 
-    return () => observer.disconnect();
-  }, [loadMore, isLoading, page, totalPages]);
+    // Also trigger immediately if already in view
+    setTimeout(() => {
+      const rect = node.getBoundingClientRect();
+      if (rect.top < window.innerHeight + 200) {
+        loadMore();
+      }
+    }, 100);
+  }, [loadMore]);
+
+  // Cleanup observer on unmount
+  useEffect(() => {
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  // Fallback scroll listener for infinite scroll
+  useEffect(() => {
+    if (isLoading || isLoadingMore || page >= totalPages) return;
+
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      // Load more when user is within 300px of bottom
+      if (scrollTop + windowHeight >= documentHeight - 300) {
+        loadMore();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Check immediately in case already at bottom
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isLoading, isLoadingMore, page, totalPages, loadMore]);
 
   const getActiveTabInfo = () => tabs.find(t => t.id === activeTab)!;
 

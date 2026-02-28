@@ -280,7 +280,7 @@ export function MediaActions({ mediaType, mediaId }: MediaActionsProps) {
                       className="p-1"
                     >
                       <IconStar
-                        className={`w-8 h-8 transition-all duration-200 ${
+                        className={`w-6 h-6 transition-all duration-200 ${
                           star <= (hoverRating || userRating || 0)
                             ? 'text-yellow-400 fill-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]'
                             : 'text-white/20'

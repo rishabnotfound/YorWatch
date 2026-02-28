@@ -236,7 +236,7 @@ export const NavbarLogo = ({ className }: NavbarLogoProps) => {
           className="h-full w-full object-cover"
         />
       </div>
-      <span className="text-xl font-bold bg-gradient-to-r from-primary to-red-400 bg-clip-text text-transparent">
+      <span className="text-x font-bold bg-gradient-to-r from-primary to-red-400 bg-clip-text text-transparent">
         {site_name}
       </span>
     </Link>
